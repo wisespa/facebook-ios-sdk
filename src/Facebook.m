@@ -328,7 +328,10 @@ static void *finishedContext = @"finishedContext";
 - (void)authorize:(NSArray *)permissions {
     self.permissions = permissions;
     
-    [self authorizeWithFBAppAuth:YES safariAuth:YES];
+    /** Changed for pop in-app dialog: start */
+    //[self authorizeWithFBAppAuth:YES safariAuth:YES];
+    [self authorizeWithFBAppAuth:YES safariAuth:NO];
+    /** Changed for pop in-app dialog: end */
 }
 
 /**
