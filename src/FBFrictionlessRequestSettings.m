@@ -120,6 +120,13 @@
 
     // a little request bookkeeping
     self.activeRequest = nil;
+    
+    /** John Modification start */
+    /** The result could be empty string */
+    if (result == nil || [result isKindOfClass:[NSString class]]) {
+        return;
+    }
+    /** John Modification end */
 
     int items = [[result objectForKey: @"data"] count];
     NSMutableArray* recipients = [[[NSMutableArray alloc] initWithCapacity: items] autorelease];
