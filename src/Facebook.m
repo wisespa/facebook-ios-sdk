@@ -810,6 +810,13 @@ static void *finishedContext = @"finishedContext";
 }
 
 - (void)request:(FBRequest *)request didLoad:(id)result {
+    /** John Modification start */
+    /** The result could be empty string */
+    if (result == nil || [result isKindOfClass:[NSString class]]) {
+        return;
+    }
+    /** John Modification end */
+    
     _isExtendingAccessToken = NO;
     NSString* accessToken = [result objectForKey:@"access_token"];
     NSString* expTime = [result objectForKey:@"expires_at"];
