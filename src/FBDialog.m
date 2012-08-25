@@ -19,6 +19,7 @@
 #import "Facebook.h"
 #import "FBFrictionlessRequestSettings.h"
 #import "JSON.h"
+#import "FBUtility.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // global
@@ -219,15 +220,8 @@ params   = _params;
         NSMutableArray* pairs = [NSMutableArray array];
         for (NSString* key in params.keyEnumerator) {
             NSString* value = [params objectForKey:key];
-            NSString* escaped_value = (NSString *)CFURLCreateStringByAddingPercentEscapes(
-                                                                                          NULL, /* allocator */
-                                                                                          (CFStringRef)value,
-                                                                                          NULL, /* charactersToLeaveUnescaped */
-                                                                                          (CFStringRef)@"!*'();:@&=+$,/?%#[]",
-                                                                                          kCFStringEncodingUTF8);
-            
+            NSString* escaped_value = [FBUtility stringByURLEncodingString:value];
             [pairs addObject:[NSString stringWithFormat:@"%@=%@", key, escaped_value]];
-            [escaped_value release];
         }
         
         NSString* query = [pairs componentsJoinedByString:@"&"];
@@ -343,7 +337,7 @@ params   = _params;
         _webView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self addSubview:_webView];
         
-        UIImage* closeImage = [UIImage imageNamed:@"FBDialog.bundle/images/close.png"];
+        UIImage* closeImage = [UIImage imageNamed:@"FacebookSDKResources.bundle/FBDialog/images/close.png"];
         
         UIColor* color = [UIColor colorWithRed:167.0/255 green:184.0/255 blue:216.0/255 alpha:1];
         _closeButton = [[UIButton buttonWithType:UIButtonTypeCustom] retain];
@@ -499,23 +493,15 @@ params   = _params;
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-//    // 102 == WebKitErrorFrameLoadInterruptedByPolicyChange
-//    if (!([error.domain isEqualToString:@"WebKitErrorDomain"] && error.code == 102)) {
-//        [self dismissWithError:error animated:YES];
-//    }
-    
-    /**
-     * John changes start
-     * There is a bug that feed dialog will fail right after logging in
-     * https://developers.facebook.com/bugs/168127053284477
-     */
     // 102 == WebKitErrorFrameLoadInterruptedByPolicyChange
-    // -999 == "Operation could not be completed"
+    // -999 == "Operation could not be completed", note -999 occurs when the user clicks away before
+    // the page has completely loaded, if we find cases where we want this to result in dialog failure
+    // (usually this just means quick-user), then we should add something more robust here to account
+    // for differences in application needs
     if (!(([error.domain isEqualToString:@"NSURLErrorDomain"] && error.code == -999) ||
           ([error.domain isEqualToString:@"WebKitErrorDomain"] && error.code == 102))) {
         [self dismissWithError:error animated:YES];
     }
-    /* John changes end */
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
